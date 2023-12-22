@@ -45,7 +45,7 @@ def predict_onnx(input_image, input_points, input_labels):
                 "image_embeddings": image_embeddings,
                 "batched_point_coords": input_points,
                 "batched_point_labels": input_labels,
-                "orig_im_size": np.array([1024, 1024], dtype=np.int64),
+                "orig_im_size": np.array(input_image.shape[2:], dtype=np.int64),
             },
         )
     mask = predicted_logits[0, 0, 0, :, :] >= 0
@@ -54,8 +54,6 @@ def predict_onnx(input_image, input_points, input_labels):
 
 def main():
     image = np.array(Image.open("figs/examples/dogs.jpg"))
-    image = image[:, :1024]
-    image = np.pad(image, ((0, 1024 - image.shape[0]), (0, 0), (0, 0)), mode="constant")
 
     input_image = image.transpose(2, 0, 1)[None].astype(np.float32) / 255.0
     # batch_size, num_queries, num_points, 2

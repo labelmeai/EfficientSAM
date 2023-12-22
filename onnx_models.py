@@ -12,6 +12,10 @@ class OnnxEfficientSam(torch.nn.Module):
         return self.model.decoder_max_num_input_points
 
     @property
+    def image_encoder(self):
+        return self.model.image_encoder
+
+    @property
     def get_image_embeddings(self):
         return self.model.get_image_embeddings
 
@@ -42,6 +46,17 @@ class OnnxEfficientSam(torch.nn.Module):
             output_w=input_w,
         )
 
+    def get_rescaled_pts(
+        self, batched_points: torch.Tensor, input_h: int, input_w: int
+    ):
+        return torch.stack(
+            [
+                batched_points[..., 0] * self.image_encoder.img_size / input_w,
+                batched_points[..., 1] * self.image_encoder.img_size / input_h,
+            ],
+            dim=-1,
+        )
+
     def predict_masks(
         self,
         image_embeddings: torch.Tensor,
@@ -55,7 +70,9 @@ class OnnxEfficientSam(torch.nn.Module):
     ):
         batch_size, max_num_queries, num_pts, _ = batched_points.shape
         num_pts = batched_points.shape[2]
-        rescaled_batched_points = batched_points
+        rescaled_batched_points = self.get_rescaled_pts(
+            batched_points, input_h, input_w
+        )
 
         if num_pts > self.decoder_max_num_input_points:
             rescaled_batched_points = rescaled_batched_points[
