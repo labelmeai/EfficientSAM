@@ -1,8 +1,10 @@
-from PIL import Image
 import numpy as np
 import torch
-import onnxruntime
+
 import imgviz
+import onnxruntime
+import time
+from PIL import Image
 
 
 def predict_onnx(input_image, input_points, input_labels):
@@ -26,15 +28,19 @@ def predict_onnx(input_image, input_points, input_labels):
         inference_session = onnxruntime.InferenceSession(
             "weights/efficient_sam_vitt_encoder.onnx"
         )
+        t_start = time.time()
         image_embeddings, = inference_session.run(
             output_names=None,
             input_feed={
                 "batched_images": input_image,
             },
         )
+        print("encoder time", time.time() - t_start)
+
         inference_session = onnxruntime.InferenceSession(
             "weights/efficient_sam_vitt_decoder.onnx"
         )
+        t_start = time.time()
         (
             predicted_logits,
             predicted_iou,
@@ -48,6 +54,7 @@ def predict_onnx(input_image, input_points, input_labels):
                 "orig_im_size": np.array(input_image.shape[2:], dtype=np.int64),
             },
         )
+        print("decoder time", time.time() - t_start)
     mask = predicted_logits[0, 0, 0, :, :] >= 0
     imgviz.io.pyplot_imshow(mask)
 
