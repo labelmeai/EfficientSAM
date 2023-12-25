@@ -1,6 +1,7 @@
 import onnxruntime
 import torch
 
+from efficient_sam.build_efficient_sam import build_efficient_sam_vits
 from efficient_sam.build_efficient_sam import build_efficient_sam_vitt
 
 import onnx_models
@@ -103,6 +104,7 @@ def export_onnx_esam_decoder(model, output):
 
 
 def main():
+    # faster
     export_onnx_esam(
         model=build_efficient_sam_vitt(),
         output="weights/efficient_sam_vitt.onnx",
@@ -114,6 +116,20 @@ def main():
     export_onnx_esam_decoder(
         model=build_efficient_sam_vitt(),
         output="weights/efficient_sam_vitt_decoder.onnx",
+    )
+
+    # more accurate
+    export_onnx_esam(
+        model=build_efficient_sam_vits(),
+        output="weights/efficient_sam_vits.onnx",
+    )
+    export_onnx_esam_encoder(
+        model=build_efficient_sam_vits(),
+        output="weights/efficient_sam_vits_encoder.onnx",
+    )
+    export_onnx_esam_decoder(
+        model=build_efficient_sam_vits(),
+        output="weights/efficient_sam_vits_decoder.onnx",
     )
 
 
