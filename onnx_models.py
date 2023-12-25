@@ -117,7 +117,10 @@ class OnnxEfficientSam(torch.nn.Module):
 
         if output_w > 0 and output_h > 0:
             output_masks = F.interpolate(
-                low_res_masks, (output_h, output_w), mode="bicubic"
+                low_res_masks,
+                (output_h, output_w),
+                # NOTE: Official implementation uses "bicubic" but 150x slower
+                mode="bilinear",
             )
             output_masks = torch.reshape(
                 output_masks,
